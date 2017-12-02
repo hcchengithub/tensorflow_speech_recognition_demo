@@ -3,9 +3,11 @@ import tflearn
 import speech_data
 import tensorflow as tf
 import peforth
+import time
 
+epoch_count = 10
 learning_rate = 0.0001
-training_iters = 300000  # steps
+training_iters = 300000 # steps
 batch_size = 64
 
 width = 20  # mfcc features
@@ -27,25 +29,33 @@ for x in col:
     tf.add_to_collection(tf.GraphKeys.VARIABLES, x ) 
 
 model = tflearn.DNN(net, tensorboard_verbose=0)
-peforth.ok('11> ',loc=locals(),cmd='cr ." Now load the network manually ... " cr')    
 
-# https://github.com/llSourcell/tensorflow_speech_recognition_demo/issues/12
-# You have to replace while 1: #training_iters: to for i in range(training_iters):
-# while 1: #training_iters
-for i in range(training_iters):
+
+msg = '''
+    <text>
+
+    Now load the network manually, e.g:
+    model :: load("saved_networks/tflearn.lstm.model.1512198177")
+    
+    </text> . '''
+peforth.ok('11> ',loc=locals(),cmd=msg)    
+
+for i in range(1,int(training_iters/epoch_count)):
     trainX, trainY = next(batch)
     testX, testY = next(batch)
     model.fit(
         trainX,
         trainY,
-        n_epoch=10,
+        n_epoch=epoch_count,
         validation_set=(testX, testY),
         show_metric=True,
         batch_size=batch_size)
-    if i % 10000 == 0: # 我記得玩 flappy bird 時發現它要一萬次以上才肯 save 
-        model.save("saved_networks/tflearn.lstm.model")
+    training_step = i * epoch_count
+    if training_step % 2000 == 0:
         # 事先要手動建立 saved_networks/ folder 
-        if peforth.vm.debug==22: peforth.ok('22> ',loc=locals(),cmd='cr')    
+        time_stamp = int(time.time())
+        model.save("saved_networks/tflearn.lstm.model."+str(time_stamp))
+        # peforth.ok('22> ',loc=locals(),cmd='cr')    
         
 peforth.ok('99> ',loc=locals(),cmd='cr')    
 _y = model.predict(next(batch)[0])  # << add your own voice here
@@ -175,5 +185,43 @@ print (_y)
             model_file: `str`. Model path.
 
     11>
+
+    [ ] 搞懂 NN 的 save-restore 它好像是不肯 overwrite 現有檔名
+        OK <accept> <py>
+        for i in range(1,10000):
+            if i % 1000 == 0:
+                print("saved_networks/tflearn.lstm.model."+str(i))
+        </py> </accept> dictate
+        saved_networks/tflearn.lstm.model.1000
+        saved_networks/tflearn.lstm.model.2000
+        saved_networks/tflearn.lstm.model.3000
+        saved_networks/tflearn.lstm.model.4000
+        saved_networks/tflearn.lstm.model.5000
+        saved_networks/tflearn.lstm.model.6000
+        saved_networks/tflearn.lstm.model.7000
+        saved_networks/tflearn.lstm.model.8000
+        saved_networks/tflearn.lstm.model.9000
+        OK
+        OK
+        OK
+
+    \ 想查出目前的 training steps 是多少。因為 model.load() 進來已經成功，導致
+      這個 for loop 的起點不一定是 1 了，要改成 model.load() 進來的當時 training
+      step 才對。
+      
+        for i in range(1,int(training_iters/epoch_count)):
+    
+    [x] 意外發現 神經網路內部相關的東西
+        22> model :> get_train_vars() . cr
+        [
+        <tf.Variable 'LSTM/LSTM/BasicLSTMCell/Linear/Matrix:0' shape=(208, 512) dtype=float32_ref>
+        , 
+        <tf.Variable 'LSTM/LSTM/BasicLSTMCell/Linear/Bias:0' shape=(512,) dtype=float32_ref>
+        , 
+        <tf.Variable 'FullyConnected/W:0' shape=(128, 10) dtype=float32_ref>
+        , 
+        <tf.Variable 'FullyConnected/b:0' shape=(10,) dtype=float32_ref>
+        ]
+    22>
         
 '''
