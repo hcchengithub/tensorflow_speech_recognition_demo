@@ -11,6 +11,8 @@ import numpy as np
 import skimage.io  # scikit-image
 import librosa
 import matplotlib
+import peforth 
+
 # try:
 #
 # except:
@@ -51,8 +53,6 @@ class Target(Enum):  # labels
   sentence=6
   sentiment=7
   first_letter=8
-
-
 
 def progresshook(blocknum, blocksize, totalsize):
     readsofar = blocknum * blocksize
@@ -155,6 +155,7 @@ def spectro_batch_generator(batch_size=10,width=64,source_data=Source.DIGIT_SPEC
         batch = []  # Reset for next batch
         labels = []
 
+# [How to make a simple tensorflow speech recognizer] 用這個
 def mfcc_batch_generator(batch_size=10, source=Source.DIGIT_WAVES, target=Target.digits):
   maybe_download(source, DATA_DIR)
   if target == Target.speaker: speakers = get_speakers()
@@ -164,11 +165,11 @@ def mfcc_batch_generator(batch_size=10, source=Source.DIGIT_WAVES, target=Target
   while True:
     print("loaded batch of %d files" % len(files))
     shuffle(files)
-    for wav in files:
+    for wav in files:  # wav 是 filename 1_Albert_160.wav 之類
       if not wav.endswith(".wav"): continue
       wave, sr = librosa.load(path+wav, mono=True)
       if target==Target.speaker: label=one_hot_from_item(speaker(wav), speakers)
-      elif target==Target.digits:  label=dense_to_one_hot(int(wav[0]),10)
+      elif target==Target.digits:  label=dense_to_one_hot(int(wav[0]),10)  # 咱的 case
       elif target==Target.first_letter:  label=dense_to_one_hot((ord(wav[0]) - 48) % 32,32)
       else: raise Exception("todo : labels for Target!")
       labels.append(label)
@@ -176,10 +177,12 @@ def mfcc_batch_generator(batch_size=10, source=Source.DIGIT_WAVES, target=Target
       # print(np.array(mfcc).shape)
       mfcc=np.pad(mfcc,((0,0),(0,80-len(mfcc[0]))), mode='constant', constant_values=0)
       batch_features.append(np.array(mfcc))
+      if peforth.vm.debug==55: peforth.ok('speech_data.py 55> ',loc=locals(),glo=globals(),cmd='cr')
       if len(batch_features) >= batch_size:
         # print(np.array(batch_features).shape)
         # yield np.array(batch_features), labels
         yield batch_features, labels  # basic_rnn_seq2seq inputs must be a sequence
+        if peforth.vm.debug==66: peforth.ok('speech_data.py 66> ',loc=locals(),glo=globals(),cmd='cr')
         batch_features = []  # Reset for next batch
         labels = []
 

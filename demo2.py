@@ -32,13 +32,17 @@ model = tflearn.DNN(net, tensorboard_verbose=0)
 
 
 msg = '''
+    dup 
+    :> [0] constant loc // ( -- dict ) locals of the debugee
+    :> [1] constant glo // ( -- dict ) globals of the debugee
     <text>
 
     Now load the network manually, e.g:
-    model :: load("saved_networks/tflearn.lstm.model.1512198177")
+    model :: load("saved_networks/demo4-1512557901")
     
     </text> . '''
-peforth.ok('11> ',loc=locals(),cmd=msg)    
+peforth.ok('00> ',glo=globals(),loc=locals(),cmd='cr')    
+peforth.ok('11> ',glo=globals(),loc=locals(),cmd=msg)    
 
 for i in range(1,int(training_iters/epoch_count)):
     trainX, trainY = next(batch)
