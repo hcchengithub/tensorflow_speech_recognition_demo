@@ -1,8 +1,0 @@
-
-[ ] 複習我以前做好的成果到哪裡？
-    有哪些筆記：
-    [筆記] [How to make a simple tensorflow speech recognizer]
-    [Comments] of [How to make a simple tensorflow speech recognizer]
-    [memory leak] [How to make a simple tensorflow speech recognizer]
-    [Installation][How to make a simple tensorflow speech recognizer]
-    

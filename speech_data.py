@@ -155,21 +155,66 @@ def spectro_batch_generator(batch_size=10,width=64,source_data=Source.DIGIT_SPEC
         batch = []  # Reset for next batch
         labels = []
 
-# [How to make a simple tensorflow speech recognizer] 用這個
 def mfcc_batch_generator(batch_size=10, source=Source.DIGIT_WAVES, target=Target.digits):
+  maybe_download(source, DATA_DIR)
+  if target == Target.speaker: speakers = get_speakers()
+  files = os.listdir(path) # all 2402 files include 2 folder 
+  files = [wav for wav in files if wav.endswith(".wav")]
+  shuffle(files) 
+  shreshold = int(len(files)*test_fraction)
+  files_test = files[:shreshold];
+  files_train = files[shreshold:];
+  def feature_label(wav):
+    if target==Target.speaker: label=one_hot_from_item(speaker(wav), speakers)
+    elif target==Target.digits:  label=dense_to_one_hot(int(wav[0]),10)  # 咱的 case 檔名第一個字母就是 label 
+    elif target==Target.first_letter:  label=dense_to_one_hot((ord(wav[0]) - 48) % 32,32)
+    else: raise Exception("todo : labels for Target!")
+    wave, sr = librosa.load(path+wav, mono=True)
+    mfcc = librosa.feature.mfcc(wave, sr)
+    mfcc = np.pad(mfcc,((0,0),(0,80-len(mfcc[0]))), mode='constant', constant_values=0)
+    feature = np.array(mfcc)
+    return feature,label
+  def getBatch(size, waves):
+    X = []; Y = []
+    for i in range(size):
+      x,y = feature_label(waves[i])
+      X.append(x)
+      Y.append(y)
+    return X,Y
+  while True:
+    print("loaded batch of %d train_files, %d test_files" % (len(files_train),len(files_test)))
+    shuffle(files_train); shuffle(files_test) 
+    train_features, train_labels = getBatch(batch_size, files_train)
+    test_features, test_labels = getBatch(batch_size, files_test)
+    if peforth.vm.debug==55: peforth.ok('55x> ',loc=locals())
+    yield train_features, train_labels, test_features, test_labels
+    if peforth.vm.debug==55: peforth.ok('55y> ',loc=locals())
+    # basic_rnn_seq2seq inputs must be a sequence
+    pass
+
+# [How to make a simple tensorflow speech recognizer] 用這個
+def mfcc_batch_generator_old(batch_size=10, source=Source.DIGIT_WAVES, target=Target.digits):
   maybe_download(source, DATA_DIR)
   if target == Target.speaker: speakers = get_speakers()
   batch_features = []
   labels = []
-  files = os.listdir(path)
+  files = os.listdir(path) # 應該是整個 folder 的 .wav 檔 2402 個含兩個 folder 
+  files = [wav for wav in files if wav.endswith(".wav")]
+  shuffle(files) 
+  files_test = files[:int(len(files)*test_fraction)];
+  files_train = files[int(len(files)*test_fraction):];
+  if peforth.vm.debug==55: peforth.ok('speech_data.py 55a> ',loc=locals())
+  # batch_size 64 
+  # source is "spoken_numbers_pcm.tar"
+  # target is Target.digits <enum 'Target'>
   while True:
     print("loaded batch of %d files" % len(files))
-    shuffle(files)
+    shuffle(files_train); shuffle(files_test) # 把檔名順序打亂
     for wav in files:  # wav 是 filename 1_Albert_160.wav 之類
       if not wav.endswith(".wav"): continue
       wave, sr = librosa.load(path+wav, mono=True)
       if target==Target.speaker: label=one_hot_from_item(speaker(wav), speakers)
-      elif target==Target.digits:  label=dense_to_one_hot(int(wav[0]),10)  # 咱的 case
+      elif target==Target.digits:  label=dense_to_one_hot(int(wav[0]),10)  # 咱的 case 檔名第一個字母就是 label 
       elif target==Target.first_letter:  label=dense_to_one_hot((ord(wav[0]) - 48) % 32,32)
       else: raise Exception("todo : labels for Target!")
       labels.append(label)
@@ -177,12 +222,12 @@ def mfcc_batch_generator(batch_size=10, source=Source.DIGIT_WAVES, target=Target
       # print(np.array(mfcc).shape)
       mfcc=np.pad(mfcc,((0,0),(0,80-len(mfcc[0]))), mode='constant', constant_values=0)
       batch_features.append(np.array(mfcc))
-      if peforth.vm.debug==55: peforth.ok('speech_data.py 55> ',loc=locals(),glo=globals(),cmd='cr')
+      if peforth.vm.debug==55: peforth.ok('55b> ',loc=locals())
       if len(batch_features) >= batch_size:
         # print(np.array(batch_features).shape)
         # yield np.array(batch_features), labels
         yield batch_features, labels  # basic_rnn_seq2seq inputs must be a sequence
-        if peforth.vm.debug==66: peforth.ok('speech_data.py 66> ',loc=locals(),glo=globals(),cmd='cr')
+        if peforth.vm.debug==66: peforth.ok('66> ',loc=locals())
         batch_features = []  # Reset for next batch
         labels = []
 
@@ -376,3 +421,9 @@ if __name__ == "__main__":
   maybe_download( Source.DIGIT_WAVES)
   maybe_download( Source.NUMBER_IMAGES)
   maybe_download( Source.NUMBER_WAVES)
+
+peforth.ok('speech_data_00> ',loc=locals(), cmd='''
+   :> [0] value locals
+   \ py: vm.debug=55
+   exit
+   ''')

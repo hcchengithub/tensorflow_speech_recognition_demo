@@ -1,0 +1,258 @@
+
+[ ] 複習我以前做好的成果到哪裡？經過哪些過程？都忘光了。
+    有哪些筆記：
+    [Comments] of [How to make a simple tensorflow speech recognizer]
+    [Installation][How to make a simple tensorflow speech recognizer]
+        當初費了不少功夫才把 Siraj 的爛 code 跑起來
+    [筆記] [How to make a simple tensorflow speech recognizer]
+    [memory leak] [How to make a simple tensorflow speech recognizer]
+        在辦公室用跟 Rainy 借來的 notebook 跑 30萬次當中常遇到的當機
+[x] 在家裡跑跑看，慢慢回憶。故先複習 installation
+    改用 jupyter notebook 跑 demo.ipynb --> 結果
+    Ynote:[Installation][How to make a simple tensorflow speech recognizer]
+    所提到的一大堆問題：
+        1.
+        2.
+        3.
+    都沒遇到，直接就衝到了此處： (可能是因為 VC++ hdf5 等都有了)
+        [x] again: python demo.py   --> download data --> 解壓縮 extract
+    Error message copied from demo.ipynb 如下:
+        curses is not supported on this machine (please install/reinstall curses for an optimal experience)
+        Looking for data spoken_numbers_pcm.tar in data/
+        Downloading from http://pannous.net/files/spoken_numbers_pcm.tar to data/spoken_numbers_pcm.tar
+        100.0% 39542784 / 39537664
+        Successfully downloaded spoken_numbers_pcm.tar 39537664 bytes.
+        Extracting data/spoken_numbers_pcm.tar to data/
+        Data ready!
+        ---------------------------------------------------------------------------
+        FileNotFoundError                         Traceback (most recent call last)
+        <ipython-input-1-309c50ec0d61> in <module>()
+             15
+             16 batch = word_batch = speech_data.mfcc_batch_generator(batch_size)
+        ---> 17 X, Y = next(batch)
+             18 trainX, trainY = X, Y
+             19 testX, testY = X, Y #overfit for now
+
+        c:\Users\hcche\Documents\GitHub\tensorflow_speech_recognition_demo\speech_data.py in mfcc_batch_generator(batch_size, source, target)
+            162   batch_features = []
+            163   labels = []
+        --> 164   files = os.listdir(path)
+            165   while True:
+            166     print("loaded batch of %d files" % len(files))
+
+        FileNotFoundError: [WinError 3] 系統找不到指定的路徑。: 'data/spoken_numbers_pcm/'
+    照先前 Ynote 上的筆記手動解壓
+        由 ~\GitHub\tensorflow_speech_recognition_demo\data\spoken_numbers_pcm.tar
+        解壓成 ~\GitHub\tensorflow_speech_recognition_demo\data\spoken_numbers_pcm\
+    重跑 demo.ipynb . . . 過了 :-D
+[x] 我想起來了 Siraj 的 demo.py 問題很多，
+    他是從這裡抄來的 ~\GitHub\tensorflow-speech-recognition\speech2text-tflearn.py
+    [x] 1. model.fit() 所在的 while loop 亂寫，根本停不了。 --> 我的 demo2.py
+           已經處理好了。
+    [x] 2. X, y 放到了 model.fit() 的 loop 外，永遠在重複同一組 epoch
+           --> 我的 demo2.py 已經處理好了。
+    [ ] 3. Train data 跟 Test data 都是從同一鍋 data 難怪要發生 overfitting
+    [ ] 4. training_iters = 300000 早就已經 overfitting 了 --> 如何用
+           tensorboard 觀察訓練狀況。
+    [x] 5. 加上我自己的心得，跑出 memory error 的應對方法 -- 用 save-restore
+           的方法繼續 --> 我在 demo2.py 裡經由 peforth breakpoint 手動用
+           model.load() restore 當機前的 model 我好棒！
+    [x] 6. 加上 itchat 遠端監督。我當時的 itchat 遠端監督是另外跑的 WeChat rebot.
+           等於是個 peforth remote console 可以隨時抓螢幕送到遠端觀察。
+    我根據原來的 pannouse's repo 改寫成 demo2.py 加上 itchat 遠端監督。
+    所以要複習就要回憶 demo2.py ....
+[x] Siraj 的 README.md Credits 有交代，來源是 pannouse's repo https://github.com/pannous/tensorflow-speech-recognition
+    裡面有一堆東西，其中的 lstm-tflearn.py 正是他給 newcomers 的入門處。
+    --> 改玩 lstm-tflearn.py . . .  shit! 他的 model.fit() loop 也是亂寫!
+        python 根本沒有 while --training_iters > 0: 這種寫法，根本沒有 --i
+        --i 只是負負得正。我的 demo2.py 倒是已經處理好了這個問題。
+    --> 根據 demo2.py 來修正 lstm-tflearn.py.ipynb 
+
+[x] 當初 demo2.py 的筆記 move 過來，裡面已經有很多發現了：
+    1. next(batch) 的分析
+    2. 朗讀一個數字，也就是一筆 data 的 mfcc 資料探索
+    3. 如何 save-restore 訓練半途的 model
+    4. model :> get_train_vars() 是 model 內部的 neural network
+       Weights and biases。
+
+
+    \ UUT 注意要領：
+        [ ] 跑 demo2.py 以及 itchat bot ～\GitHub\peforth\playground\itchat\itchat_remote_peforth.py
+        [ ] power saving setting AC 'never' sleep
+
+    \ 完整設定過程，讓 UUT 回覆它的畫面經由 itchat bot 傳給遠端的 PC 或手機。
+    \ 讓遠端可以來監看執行狀況。這段程式是由遠端灌過來給 UUT 的。
+        ~\GitHub\ailab_RockPaperScissors\itchat_robot.py
+        最新的 itchat robot that supports anti-robot delay and WeChat chatroom
+
+    \ Breakpoint 11> 22> 等處都不要改，永久配合以下筆記
+    11> depth . cr
+    1
+    11> :> [0] inport
+    11> .s
+    empty
+
+    11> words
+    ... snip ....
+    (pyclude) pyclude .members .source dos cd --- __name__ __doc__ __package__
+    __loader__ __spec__ __annotations__ __builtins__ __file__ __cached__ division
+    print_function absolute_import tflearn speech_data tf peforth learning_rate
+    training_iters batch_size width height classes batch word_batch net0 net net1
+    net2 net3 col x model
+
+    11> batch type . cr
+    <class 'generator'>
+    \ 是個 generator, next(batch) 產生 batch_size 組資料 tuple
+    \ (feature, lable) 其中 feature 是 pcm, lable 是 one-hot
+
+    11> batch py> next(pop())[0]   \ 這是 64 組聲音 features 分析如下：
+    11> .s
+          0: [array([[  70.0763561 ,   63.62473879,   38.23389122, ...,    0.        ,
+               0.        ,    0.        ],
+           ...snip...
+           [  -1.35571805,   -7.27423625,  -11.18825843, ...,    0.        ,
+               0.        ,    0.        ]]), array([[  66.69145693,   61.06051069,   42.44057717, ...,    0.        ,
+               0.        ,    0.        ]])] (<class 'list'>)
+    11> depth . cr ==> 1
+    11> constant next(batch)[0]
+
+    11> next(batch)[0] type . cr ==> <class 'list'>
+    11> next(batch)[0] dir . cr ==> ['__add__', '__class__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__iadd__', '__imul__', '__init__', '__init_subclass__', '__iter__', '__le__', '__len__', '__lt__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rmul__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+    11> next(batch)[0] count . cr ==> 64 <-- batch_size
+
+    11> batch py> next(pop()) constant next(batch)
+    11> next(batch) type . cr ==> <class 'tuple'> 這 tuple 是 (pcm[64],label[64])
+    11> next(batch) count . cr ==> 2 <-- pcm and lable
+    11> next(batch) :> [1] . cr <---- one-hot labels
+        [array([ 0.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]),
+         ... snip ...
+         array([ 1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])]
+    11>
+    11> next(batch)[0] :> [0] . cr
+    [[  70.0763561    63.62473879   38.23389122 ...,    0.            0.            0.        ]
+     ...snip...,
+     [  -1.35571805   -7.27423625  -11.18825843 ...,    0.            0.            0.        ]]
+
+    不知道這 mfcc 是啥，只知道是聲音檔
+    11> next(batch)[0] :> [0] count . cr ==>  20   \ width = 20  # mfcc features
+    11> next(batch)[0] :> [0][0] count . cr ==> 80 \ height = 80  # (max) length of utterance
+    11> next(batch)[0] :> [0][0] . cr 如下，這裡面有 80 個 float
+    [  70.0763561    63.62473879   38.23389122   33.16041049   -0.38796544
+      -20.28952868  -20.41362055  -18.99775059  -15.50313895  -11.91663208
+      -11.14165283  -25.10749751  -23.12044151   -8.37803205   99.59400154
+      120.31006276    0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.            0.
+        0.            0.            0.            0.            0.        ]
+    11>
+
+    [ ] 為何語音 data 是這個擺放結構？
+        width = 20  # mfcc features
+        height = 80  # (max) length of utterance
+
+    \ 查看 nn 的 save restore 怎麼用
+    11> model :> load py: help(pop())
+    Help on method load in module tflearn.models.dnn:
+
+    load(model_file, weights_only=False, **optargs) method of
+    tflearn.models.dnn.DNN instance Load.
+
+        Restore model weights.
+
+        Arguments:
+            model_file: `str`. Model path.
+            weights_only: `bool`. If True, only weights will be restored (
+                and not intermediate variable, such as step counter, moving
+                averages...). Note that if you are using batch normalization,
+                averages will not be restored as well.
+            optargs: optional extra arguments for trainer.restore (see helpers/trainer.py)
+                     These optional arguments may be used to limit the scope of
+                     variables restored, and to control whether a new session is
+                     created for the restored variables.
+
+    11> model :> save py: help(pop())
+    Help on method save in module tflearn.models.dnn:
+
+    save(model_file) method of tflearn.models.dnn.DNN instance
+        Save.
+
+        Save model weights.
+
+        Arguments:
+            model_file: `str`. Model path.
+
+    11>
+
+    [ ] 搞懂 NN 的 save-restore 它好像是不肯 overwrite 現有檔名
+        OK <accept> <py>
+        for i in range(1,10000):
+            if i % 1000 == 0:
+                print("saved_networks/tflearn.lstm.model."+str(i))
+        </py> </accept> dictate
+        saved_networks/tflearn.lstm.model.1000
+        saved_networks/tflearn.lstm.model.2000
+        saved_networks/tflearn.lstm.model.3000
+        saved_networks/tflearn.lstm.model.4000
+        saved_networks/tflearn.lstm.model.5000
+        saved_networks/tflearn.lstm.model.6000
+        saved_networks/tflearn.lstm.model.7000
+        saved_networks/tflearn.lstm.model.8000
+        saved_networks/tflearn.lstm.model.9000
+        OK
+        OK
+        OK
+
+    \ 想查出目前的 training steps 是多少。因為 model.load() 進來已經成功，導致
+      這個 for loop 的起點不一定是 1 了，要改成 model.load() 進來的當時 training
+      step 才對。
+
+        for i in range(1,int(training_iters/epoch_count)):
+
+    [x] 意外發現 神經網路內部相關的東西
+        22> model :> get_train_vars() . cr
+        [
+        <tf.Variable 'LSTM/LSTM/BasicLSTMCell/Linear/Matrix:0' shape=(208, 512) dtype=float32_ref>
+        ,
+        <tf.Variable 'LSTM/LSTM/BasicLSTMCell/Linear/Bias:0' shape=(512,) dtype=float32_ref>
+        ,
+        <tf.Variable 'FullyConnected/W:0' shape=(128, 10) dtype=float32_ref>
+        ,
+        <tf.Variable 'FullyConnected/b:0' shape=(10,) dtype=float32_ref>
+        ]
+    22>
+[ ] 上面指出的這個問題：
+        Train data 跟 Test data 都是從同一鍋 data 難怪要發生 overfitting
+    [ ] 改試別的 project --> https://github.com/Uberi/speech_recognition
+[x] 上面指出的這個問題：
+        Train data 跟 Test data 都是從同一鍋 data 難怪要發生 overfitting
+    應該在 pannouse's repo 裡面就有答案...
+    --> 先 search dataset 'speech_data' actually speech_data.py 看有誰來用它...
+        一大堆! 看來很有機會... 沒,留了個尾巴。
+    --> 查 issues search "test_fraction" --> #28 #29
+    --> 作者說是 trivial 那我來試試看好了...
+    --> 使用 peforth 來探究 ~\GitHub\tensorflow_speech_recognition_demo\speech_data.py
+    --> 答案是修改 def mfcc_batch_generator() 的確不會太難。
+    --> 他的 files 就是全部，沒有用到 test_fraction 從用到 files 的地方下手。
+    --> 先把 files 裡面不要的剃除
+        files = [wav for wav in files if wav.endswith(".wav")]
+    --> 把 files 打亂
+        shuffle(files) 
+    --> 分成兩組 
+        files <py>
+        files = pop(); test_fraction = 0.1;
+        files_test = files[:int(len(files)*test_fraction)];
+        files_train = files[int(len(files)*test_fraction):];
+        push((files_train,files_test));
+        </py>
+    --> 應該成功了。
+    
+[ ] 上面指出的這個問題：
+    1. model.fit() 所在的 while loop 亂寫，根本停不了。 --> 我的 demo2.py 已經處理好了。
+    5. 加上我自己的心得，跑出 memory error 的應對方法 -- 用 save-restore 的方法繼續
