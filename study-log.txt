@@ -253,6 +253,16 @@
         </py>
     --> 應該成功了。
     
-[ ] 上面指出的這個問題：
+[x] 上面指出的這兩個問題：
     1. model.fit() 所在的 while loop 亂寫，根本停不了。 --> 我的 demo2.py 已經處理好了。
     5. 加上我自己的心得，跑出 memory error 的應對方法 -- 用 save-restore 的方法繼續
+	--> 抄 demo2.py 就很好了。
+	--> lstm-tflearn.py.ipynb 成功跑起來了！ 
+	
+[x] 20:21 2018-01-14 
+	在我 Desktop 上跑太慢，改到 OA LRV2 跑，又遇到一大堆問題，一頓功夫都解了。
+	See my Ynote: [Installation][How to make a simple tensorflow speech recognizer]
+
+[x] jupyter nbconvert lstm-tflearn.py.ipynb --to script
+	20:21 2018-01-14 lstm-tflearn.py 跑起來了。。。。
+	
