@@ -13,7 +13,7 @@
 # 
 # 放棄 Siraj 的 demo.py 改玩這個 lstm-tflearn.py
 
-# In[1]:
+# In[ ]:
 
 
 #!/usr/bin/env python
@@ -21,19 +21,19 @@
 import tensorflow as tf
 
 
-# In[2]:
+# In[ ]:
 
 
 import tflearn
 
 
-# In[4]:
+# In[ ]:
 
 
 import speech_data
 
 
-# In[5]:
+# In[ ]:
 
 
 import time
@@ -49,19 +49,19 @@ height = 80  # (max) length of utterance
 classes = 10  # digits
 
 
-# In[6]:
+# In[ ]:
 
 
 batch = word_batch = speech_data.mfcc_batch_generator(batch_size)
 
 
-# In[7]:
+# In[ ]:
 
 
 
 # Network building
 net = tflearn.input_data([None, width, height])
-net = tflearn.lstm(net, 128*4, dropout=0.5)
+net = tflearn.lstm(net, 128*4, dropout=0.8)
 net = tflearn.fully_connected(net, classes, activation='softmax')
 net = tflearn.regression(net, optimizer='adam', learning_rate=learning_rate, loss='categorical_crossentropy')
 model = tflearn.DNN(net, tensorboard_verbose=0)
@@ -71,7 +71,15 @@ for x in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES): tf.add_to_collecti
 
 
 
-# In[8]:
+# In[ ]:
+
+
+# manually load saved model
+# locals inport model :: load("saved_networks/tflearn.lstm.model.1515938925")
+peforth.ok('load> ', loc=locals(),cmd=':> [0] to locals cr cr')
+
+
+# In[ ]:
 
 
 # Training
