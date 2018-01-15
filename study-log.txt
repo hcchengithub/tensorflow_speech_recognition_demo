@@ -52,8 +52,13 @@
     [x] 2. X, y 放到了 model.fit() 的 loop 外，永遠在重複同一組 epoch
            --> 我的 demo2.py 已經處理好了。
     [ ] 3. Train data 跟 Test data 都是從同一鍋 data 難怪要發生 overfitting
-    [ ] 4. training_iters = 300000 早就已經 overfitting 了 --> 如何用
+    [x] 4. training_iters = 300000 早就已經 overfitting 了 --> 如何用
            tensorboard 觀察訓練狀況。
+           [x] 可以邊跑 training 邊隨時查看 tensorboard 的狀況。
+               c:\anydir\> tensorboard --logdir=\tmp\tflearn_logs  
+               固定都放這裡，自動隨時間分很多 sub-directory 檔名為 R9DQXM 
+               之類的隨機碼。記得先把舊的剔除，不記得沒關係，看到畫面就知道了。
+               See Getting Started - TFLearn
     [x] 5. 加上我自己的心得，跑出 memory error 的應對方法 -- 用 save-restore
            的方法繼續 --> 我在 demo2.py 裡經由 peforth breakpoint 手動用
            model.load() restore 當機前的 model 我好棒！
@@ -208,7 +213,11 @@
         OK
         OK
         OK
-	\ Restore 的方法
+        
+	\ [Restore 的方法] 
+      Use model.load() to restore the model to incrementally continue the training   
+      Oneliner: locals inport model :: load("saved_networks/tflearn.lstm.model.1515979420")
+      
 		load> locals keys . cr
 		dict_keys(['__name__', '__doc__', '__package__', '__loader__', '__spec__', '__builtin__', '__builtins__', '_ih', '_oh', '_dh', 'In', 'Out', 'get_ipython', 'exit', 'quit', '_', '__', '___', '_i', '_ii', '_iii', '_i1', 'tf', '_i2', 'tflearn', '_i3', 'speech_data', '_i4', 'time', 'peforth', 'epoch_count', 'learning_rate', 'training_iters', 'batch_size', 'width', 'height', 'classes', '_i5', 'batch', 'word_batch', '_i6', 'net', 'model', 'x', '_i7'])
 		load> locals inport
@@ -275,4 +284,11 @@
 
 [x] jupyter nbconvert lstm-tflearn.py.ipynb --to script
 	20:21 2018-01-14 lstm-tflearn.py 跑起來了。。。。
-	
+
+[x] 11:12 2018-01-15
+	週一回到公司，改用舊 OA LRV2 跑，又遇到新 LRV2 遇過的問題，一頓功夫都解了。
+	See my Ynote: [Installation][How to make a simple tensorflow speech recognizer]
+
+    1. 整個 GitHub repo copy 過去。
+    2. 試跑，解決 install 問題如上。
+    3. 跑起來，restore model [Restore 的方法] 如上
