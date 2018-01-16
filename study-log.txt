@@ -292,3 +292,47 @@
     1. 整個 GitHub repo copy 過去。
     2. 試跑，解決 install 問題如上。
     3. 跑起來，restore model [Restore 的方法] 如上
+    
+[x] 因為在舊 LRV2 上不方便 edit study-log.txt 但是可以 edit Ynote 所以暫時用
+    Ynote 紀錄 Tensorboard --> 其實不必，忘了有 mstsc 從 T550 就可以操作。
+    
+[x] 訓練到 30k 已經穩定了，把 model 抓回來 T550 
+    checkpoint
+    tflearn.lstm.model.1516057900.data-00000-of-00001
+    tflearn.lstm.model.1516057900.index
+    tflearn.lstm.model.1516057900.meta
+
+[ ] 改用 jupyter notebook 跑 lstm-tflearn.ipynb 好像有利做 predict?
+    load> locals inport model :: load("saved_networks/tflearn.lstm.model.1516057900")
+    INFO:tensorflow:Restoring parameters from c:\Users\hcche\Documents\GitHub\tensorflow_speech_recognition_demo\saved_networks\tflearn.lstm.model.1516057900
+    load> 
+
+[X] 試試看 predict. 安排程式，給他 wav 檔就回覆 0～9 
+    Ynote [筆記] [How to make a simple tensorflow speech recognizer]
+    有紀錄先前的研究成果：手動餵一個 .wav 檔進去，看神經網路的 predict 結果
+    
+    ----- 從 lstm-tflearn.ipynb 裡半路上手程式如下 -----
+    peforth.ok('load> ', loc=locals(),cmd='''
+        :> [0] to locals locals inport \ get model 
+        .( restore-model \ to restore the saved model ) cr
+        : restore-model ( -- ) // Timestamp from saved_networks\tflearn.lstm.model.1516057900.meta 
+            model :: load("saved_networks/tflearn.lstm.model."+"1516057900") ;
+        import librosa constant librosa // ( -- module ) 
+        import numpy constant np // ( -- module )  
+        .( "path\\name.wav" predict . cr \ to predict the given wave file ) cr 
+        : predict ( pathname -- results ) // results is an array of scores of each digit 0~9
+            ( pathname ) librosa :> load(pop(),mono=True) ( y,sr )
+            librosa :> feature.mfcc(tos()[0],tos()[1]) nip ( mfcc )
+            np :> pad(tos(),((0,0),(0,80-len(tos()[0]))),mode='constant',constant_values=0) nip ( MFCC )
+            model :> predict([pop()]) ;
+        .( exit \ to continue ) cr
+        ''')
+    ----------------------------------------------------
+    成功！
+    
+[x] 自己錄的聲音 predict 效果很差，訓練教材則很好。可能原因
+    1. 檔案格式不同
+    2. 可能連訓練教材前後加 blank 都不行 <-- 不幸言中！
+       這個它就亂猜了 ～\data\mysounds\3_Victoria_280_insert_silence.wav  
+    
+    

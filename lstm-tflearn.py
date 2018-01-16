@@ -13,7 +13,7 @@
 # 
 # 放棄 Siraj 的 demo.py 改玩這個 lstm-tflearn.py
 
-# In[ ]:
+# In[1]:
 
 
 #!/usr/bin/env python
@@ -21,19 +21,19 @@
 import tensorflow as tf
 
 
-# In[ ]:
+# In[2]:
 
 
 import tflearn
 
 
-# In[ ]:
+# In[3]:
 
 
 import speech_data
 
 
-# In[ ]:
+# In[4]:
 
 
 import time
@@ -49,13 +49,13 @@ height = 80  # (max) length of utterance
 classes = 10  # digits
 
 
-# In[ ]:
+# In[5]:
 
 
 batch = word_batch = speech_data.mfcc_batch_generator(batch_size)
 
 
-# In[ ]:
+# In[6]:
 
 
 
@@ -75,8 +75,22 @@ for x in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES): tf.add_to_collecti
 
 
 # manually load saved model
-# locals inport model :: load("saved_networks/tflearn.lstm.model.1515938925")
-peforth.ok('load> ', loc=locals(),cmd=':> [0] to locals cr cr')
+# locals inport model :> load("saved_networks/tflearn.lstm.model.????????????")
+peforth.ok('load> ', loc=locals(),cmd='''
+    :> [0] to locals locals inport \ get model 
+    .( restore-model \ to restore the saved model ) cr
+    : restore-model ( -- ) // Timestamp from saved_networks\tflearn.lstm.model.1516057900.meta 
+        model :: load("saved_networks/tflearn.lstm.model."+"1516057900") ;
+    import librosa constant librosa // ( -- module ) 
+    import numpy constant np // ( -- module )  
+    .( "path\\name.wav" predict . cr \ to predict the given wave file ) cr 
+    : predict ( pathname -- results ) // results is an array of scores of each digit 0~9
+        ( pathname ) librosa :> load(pop(),mono=True) ( y,sr )
+        librosa :> feature.mfcc(tos()[0],tos()[1]) nip ( mfcc )
+        np :> pad(tos(),((0,0),(0,80-len(tos()[0]))),mode='constant',constant_values=0) nip ( MFCC )
+        model :> predict([pop()]) ;
+    .( exit \ to continue ) cr
+    ''')
 
 
 # In[ ]:
