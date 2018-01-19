@@ -1,5 +1,5 @@
 
-[ ] 複習我以前做好的成果到哪裡？經過哪些過程？都忘光了。
+[x] 複習我以前做好的成果到哪裡？經過哪些過程？都忘光了。
     有哪些筆記：
     [Comments] of [How to make a simple tensorflow speech recognizer]
     [Installation][How to make a simple tensorflow speech recognizer]
@@ -335,4 +335,4 @@
     2. 可能連訓練教材前後加 blank 都不行 <-- 不幸言中！
        這個它就亂猜了 ～\data\mysounds\3_Victoria_280_insert_silence.wav  
     
-    
+[x] 找到了 Mozilla DeepSpeech . . . 
