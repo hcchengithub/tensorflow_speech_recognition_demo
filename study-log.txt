@@ -336,3 +336,32 @@
        這個它就亂猜了 ～\data\mysounds\3_Victoria_280_insert_silence.wav  
     
 [x] 找到了 Mozilla DeepSpeech . . . 
+
+[x] 回答網友的問題，沒有 predict.py 如何 predict?
+    # 用 ipython 手動貼上下列 snippet 即可從頭 run 到 predict 某個 wav 檔完成。
+    import tensorflow as tf
+    import tflearn
+    import speech_data
+    import librosa
+    import numpy as np
+    epoch_count = 10
+    learning_rate = 0.0001
+    training_iters = 300000  # steps
+    batch_size = 64
+    width = 20  # mfcc features
+    height = 80  # (max) length of utterance
+    classes = 10  # digits
+    batch = word_batch = speech_data.mfcc_batch_generator(batch_size)
+    net = tflearn.input_data([None, width, height])
+    net = tflearn.lstm(net, 128*4, dropout=0.8)
+    net = tflearn.fully_connected(net, classes, activation='softmax')
+    net = tflearn.regression(net, optimizer='adam', learning_rate=learning_rate, loss='categorical_crossentropy')
+    model = tflearn.DNN(net, tensorboard_verbose=0)
+    for x in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES): tf.add_to_collection(tf.GraphKeys.VARIABLES, x )
+    model.load("saved_networks/tflearn.lstm.model.1516057900")
+    y, sr = librosa.load("data/spoken_numbers_pcm/2_Ralph_300.wav",mono=True)
+    mfcc = librosa.feature.mfcc(y,sr) 
+    MFCC = np.pad(mfcc,((0,0),(0,80-len(mfcc[0]))),mode='constant',constant_values=0) 
+    model.predict([MFCC]) 
+    # -- the end ---
+    
